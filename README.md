@@ -1,166 +1,116 @@
-# Claude Code Voice
+# 🎙️ Claude Code Voice
 
-Voice conversations with Claude about your code. Have Claude call you to brainstorm, debug, or discuss your projects.
+> **Voice conversations with Claude about your code.**
+> Have Claude call you to brainstorm, debug, or discuss your projects.
 
-## Overview
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.8+-blue" alt="Python">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+</p>
 
-Claude Code Voice is a CLI tool and Claude Code skill that enables phone conversations about your codebase. When you're deep in a coding session and want to talk through a problem, just run `/call` and Claude will call your phone with full context about your project.
+---
 
-**Key Features:**
+When you're deep in a coding session and want to talk through a problem, run `/call` and Claude will call your phone with full context about what you're working on.
 
-- **Outbound calls** — Claude calls you, not the other way around
-- **Rich context** — Automatically includes git status, recent files, todos, and session context
-- **Live tools** — Claude can read files and search code during the call
-- **Transcripts** — Every call is saved as markdown for future reference
+## What's Included
 
-## Quick Start
+| Component | Description |
+|-----------|-------------|
+| **CLI Tool** | `claude-code-voice` command for setup, calls, and transcripts |
+| **Claude Code Skill** | `/call` slash command integration |
+| **Context Server** | Live file reading and code search during calls |
+| **Transcripts** | Every call saved as markdown |
+
+## Features
+
+### Outbound Calls
+Claude calls you, not the other way around. No waiting on hold.
 
 ```bash
-# Install
-pip install claude-code-voice
-
-# Configure (requires Vapi account)
-claude-code-voice setup
-
-# Register your project
-cd your-project
-claude-code-voice register
-
-# Have Claude call you
 claude-code-voice call "let's debug the auth flow"
+claude-code-voice "brainstorm the new API design"
 ```
 
-## Requirements
+### Rich Context
+Every call includes your project context automatically:
+- Git status and recent commits
+- Project type (Node.js, Python, Rust, Go, Swift, etc.)
+- Recently modified files
+- Current todos
+- Claude Code session context (what you were just working on)
 
-- Python 3.8+
-- [Vapi](https://vapi.ai) account (handles the voice AI infrastructure)
-- A phone number configured in Vapi
+### Live Tools
+During the call, Claude can:
+- Read specific files from your project
+- Search code patterns
+- Get fresh context on demand
+
+### Session Awareness
+When used within Claude Code, the call inherits your session:
+- What you've been working on
+- Recent files touched
+- Current problem or question
 
 ## Installation
 
-### From PyPI
-
 ```bash
 pip install claude-code-voice
 ```
 
-### From Source
+### As Claude Code Skill
 
 ```bash
-git clone <repo-url>
-cd claude-code-voice
-pip install -e .
-```
-
-### As a Claude Code Skill
-
-```bash
-# Symlink to your skills directory
 ln -s /path/to/claude-code-voice ~/.claude/skills/call
 ```
 
-Then use `/call` directly in Claude Code conversations.
+Then use `/call` directly in conversations.
 
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `setup` | Configure Vapi API key and phone numbers |
-| `register` | Register the current project for voice calls |
-| `call [topic]` | Have Claude call you (optionally with a specific topic) |
-| `sync` | Download transcripts from completed calls |
-| `history` | Show recent call history |
-| `list` | List all registered projects |
-| `status` | Show current configuration |
-| `server` | Start the context server for live file access |
-
-## Usage
-
-### Initial Setup
+## Setup
 
 ```bash
 claude-code-voice setup
 ```
 
 You'll need:
-1. Your Vapi API key from [dashboard.vapi.ai](https://dashboard.vapi.ai)
-2. A phone number purchased or imported in Vapi
-3. Your personal phone number (where Claude will call you)
+1. [Vapi](https://vapi.ai) account and API key
+2. Phone number in Vapi (purchased or imported from Twilio)
+3. Your phone number
 
-### Register a Project
+## Usage
 
-Navigate to any project directory and register it:
-
-```bash
-cd ~/projects/my-app
-claude-code-voice register
-```
-
-This captures a snapshot of:
-- Project type (Node.js, Python, Rust, Go, Swift, etc.)
-- Description from README
-- Git status and recent commits
-- Recently modified files
-- Current todos
-
-### Make a Call
+### CLI Commands
 
 ```bash
-# General check-in
-claude-code-voice call
-
-# Specific topic
-claude-code-voice call "brainstorm the new caching layer"
-claude-code-voice call "help me understand the auth middleware"
-claude-code-voice call "the tests are failing and I don't know why"
+claude-code-voice setup           # Configure credentials
+claude-code-voice register        # Register current project
+claude-code-voice call "topic"    # Have Claude call you
+claude-code-voice sync            # Download transcripts
+claude-code-voice history         # View past calls
+claude-code-voice list            # List registered projects
+claude-code-voice status          # Check configuration
+claude-code-voice server          # Start context server
 ```
 
-Or use the shorthand (first argument treated as topic):
-
-```bash
-claude-code-voice "let's discuss the API design"
-```
-
-### Using with Claude Code
-
-When installed as a skill, you can invoke directly:
+### Claude Code Skill
 
 ```
 /call                        # Claude calls you
 /call "debug the login bug"  # Call with specific topic
 /call register               # Register current project
 /call sync                   # Pull transcripts
-/call status                 # Check configuration
 ```
-
-### Sync Transcripts
-
-After calls end, sync the transcripts:
-
-```bash
-claude-code-voice sync
-```
-
-Transcripts are saved as markdown files in `~/.claude-code-voice/transcripts/`.
 
 ## Context Server (Optional)
 
-For live file reading and code search during calls, run the context server:
+For live file access during calls:
 
 ```bash
-# Terminal 1: Start the server
-claude-code-voice server --port 8765
+# Terminal 1
+claude-code-voice server
 
-# Terminal 2: Expose via tunnel
+# Terminal 2
 npx localtunnel --port 8765
-# or
-ngrok http 8765
 ```
-
-Then update your config with the tunnel URL. This enables Claude to:
-- Read specific files on demand
-- Search code patterns across your project
-- Get fresh context during long calls
 
 ## How It Works
 
@@ -177,59 +127,14 @@ Then update your config with the tunnel URL. This enables Claude to:
                       └─────────────────┘
 ```
 
-1. **Registration** captures project context (git status, files, todos)
-2. **Call** creates a transient Vapi assistant with:
-   - Full project context baked into the system prompt (fast, no latency)
-   - Live tools for deeper lookups when needed
+1. **Register** captures project context
+2. **Call** creates a transient Vapi assistant with full context
 3. **Claude** converses naturally about your code
-4. **Transcript** is saved after the call ends
-
-### Session Context
-
-When used within Claude Code, session context is automatically captured:
-- What you've been working on
-- Recent files touched in the session
-- Current problem or question
-- Any notes from the conversation
-
-This means Claude on the phone knows exactly where you left off.
+4. **Transcript** saved after call ends
 
 ## Configuration
 
-Config is stored in `~/.claude-code-voice/config.json`:
-
-```json
-{
-  "vapi_api_key": "your-api-key",
-  "vapi_phone_number_id": "phone-number-id",
-  "vapi_phone_number": "+1234567890",
-  "user_phone": "+0987654321",
-  "server_url": "https://your-tunnel.loca.lt",
-  "tool_ids": {}
-}
-```
-
-When used as a Claude Code skill, data is stored in `~/.claude/skills/call/data/` instead.
-
-## Troubleshooting
-
-**"No Vapi API key configured"**
-→ Run `claude-code-voice setup`
-
-**"No phone number configured"**
-→ Create or import a phone number in the [Vapi dashboard](https://dashboard.vapi.ai/phone-numbers)
-
-**"Project not registered"**
-→ Run `claude-code-voice register` in your project directory
-
-**Call not connecting**
-→ Check your phone number format includes country code (+1234567890)
-→ Verify your Vapi account has available credits
-→ For international calls, you may need to import a Twilio number
-
-**Context server not working**
-→ Ensure the tunnel URL is accessible
-→ Run `claude-code-voice setup` again to update the server URL
+Stored in `~/.claude-code-voice/config.json` (or `~/.claude/skills/call/data/` as a skill).
 
 ## License
 
