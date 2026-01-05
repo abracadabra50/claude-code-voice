@@ -1,3 +1,10 @@
+---
+name: call
+description: Voice conversations with Claude about your projects. Call a phone number to brainstorm, or have Claude call you with updates. (user)
+allowed-tools: Bash, Read, Write, AskUserQuestion
+user-invocable: true
+---
+
 # /call
 
 Voice conversations with Claude about your projects. Call a phone number to brainstorm, or have Claude call you with updates.

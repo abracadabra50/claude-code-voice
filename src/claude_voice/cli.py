@@ -503,21 +503,31 @@ Keep responses brief and conversational. Ask clarifying questions. Help brainsto
         print(f"   Session context: ✅ loaded")
 
     # Use transient assistant with rich context
+    assistant_config = {
+        "model": {
+            "provider": "anthropic",
+            "model": "claude-sonnet-4-20250514",
+            "temperature": 0.7,
+            "messages": [{"role": "system", "content": system_prompt}],
+        },
+        "voice": {"provider": "openai", "voiceId": "alloy"},
+        "firstMessage": first_message,
+    }
+
+    # Only include toolIds if tools are configured
+    tool_ids = list(config.get("tool_ids", {}).values())
+    if tool_ids:
+        assistant_config["model"]["toolIds"] = tool_ids
+
+    # Only include serverUrl if actually configured (Vapi rejects empty string)
+    server_url = config.get("server_url")
+    if server_url:
+        assistant_config["serverUrl"] = server_url
+
     call_data = {
         "phoneNumberId": config["vapi_phone_number_id"],
         "customer": {"number": config["user_phone"]},
-        "assistant": {
-            "model": {
-                "provider": "anthropic",
-                "model": "claude-sonnet-4-20250514",
-                "temperature": 0.7,
-                "messages": [{"role": "system", "content": system_prompt}],
-                "toolIds": list(config.get("tool_ids", {}).values())
-            },
-            "voice": {"provider": "openai", "voiceId": "alloy"},
-            "firstMessage": first_message,
-            "serverUrl": config.get("server_url", "")
-        }
+        "assistant": assistant_config
     }
 
     try:

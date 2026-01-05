@@ -53,15 +53,30 @@ When used within Claude Code, the call inherits your session:
 
 ## Installation
 
+### Option 1: pip install (CLI only)
+
 ```bash
 pip install claude-code-voice
 ```
 
-### As Claude Code Skill
+This installs the `claude-code-voice` command for terminal use.
+
+### Option 2: Claude Code Skill (for `/call` command)
+
+To use `/call` directly in Claude Code conversations, clone the repo and symlink the **directory** (not the binary):
 
 ```bash
-ln -s /path/to/claude-code-voice ~/.claude/skills/call
+# Clone the repository
+git clone https://github.com/abracadabra50/claude-code-voice-skill.git
+
+# Symlink the skill directory (must contain SKILL.md)
+ln -s /path/to/claude-code-voice-skill ~/.claude/skills/call
+
+# Install dependencies
+pip install requests
 ```
+
+**Important:** The symlink must point to a directory containing `SKILL.md`, not to the installed binary. Claude Code skills require a `SKILL.md` file to register the slash command.
 
 Then use `/call` directly in conversations.
 
