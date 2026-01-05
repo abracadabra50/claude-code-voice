@@ -104,6 +104,7 @@ claude-code-voice history         # View past calls
 claude-code-voice list            # List registered projects
 claude-code-voice status          # Check configuration
 claude-code-voice server          # Start context server
+claude-code-voice config KEY VAL  # Set configuration values
 ```
 
 ### Claude Code Skill
@@ -117,15 +118,21 @@ claude-code-voice server          # Start context server
 
 ## Context Server (Optional)
 
-For live file access during calls:
+For live file access during calls, you need to run a local server and expose it via a tunnel:
 
 ```bash
-# Terminal 1
+# Terminal 1: Start the context server
 claude-code-voice server
 
-# Terminal 2
+# Terminal 2: Create a public tunnel
 npx localtunnel --port 8765
+# This will output something like: https://abc123.loca.lt
+
+# Terminal 3: Configure the server URL (automatically updates Vapi tools)
+claude-code-voice config server-url https://abc123.loca.lt
 ```
+
+**Note:** The tunnel URL changes each time you restart localtunnel. Just run `claude-code-voice config server-url <new-url>` to update.
 
 ## How It Works
 

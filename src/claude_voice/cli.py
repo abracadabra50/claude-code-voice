@@ -748,11 +748,65 @@ def cmd_server(args):
     server_main(args)
 
 
+def cmd_config(args):
+    """Set or get configuration values."""
+    config = load_config()
+
+    if args.key == "server-url":
+        if args.value:
+            # Setting a value
+            url = args.value.strip()
+            if url and not url.startswith("https://"):
+                print("WARNING: Server URL should use HTTPS for Vapi to connect")
+            config["server_url"] = url
+            save_config(config)
+            print(f"✅ server_url = {url}")
+
+            # Update existing tools with new URL
+            tool_ids = config.get("tool_ids", {})
+            if tool_ids and config.get("vapi_api_key"):
+                print("\nUpdating tools with new server URL...")
+                updated = 0
+                for tool_name, tool_id in tool_ids.items():
+                    try:
+                        vapi_request("PATCH", f"/tool/{tool_id}", {
+                            "server": {"url": url}
+                        })
+                        updated += 1
+                    except Exception as e:
+                        print(f"  ⚠️  Failed to update {tool_name}: {e}")
+                print(f"✅ Updated {updated}/{len(tool_ids)} tools")
+            elif not tool_ids:
+                print("\nNo tools configured yet. Run 'claude-code-voice setup' first.")
+        else:
+            # Getting a value
+            value = config.get("server_url", "")
+            if value:
+                print(f"server_url = {value}")
+            else:
+                print("server_url is not set")
+                print("\nTo set it, run your context server and tunnel, then:")
+                print("  claude-code-voice config server-url https://your-tunnel-url.loca.lt")
+
+    elif args.key == "show":
+        print("=== Configuration ===\n")
+        for key, value in config.items():
+            if key == "vapi_api_key":
+                print(f"  {key}: ***{value[-4:] if value else 'Not set'}")
+            else:
+                print(f"  {key}: {value}")
+    else:
+        print(f"Unknown config key: {args.key}")
+        print("\nAvailable keys:")
+        print("  server-url  - URL of your context server (e.g., localtunnel URL)")
+        print("  show        - Show all configuration values")
+
+
 # ============================================================================
 # MAIN
 # ============================================================================
 
-COMMANDS = {"setup", "register", "call", "sync", "history", "list", "status", "server"}
+COMMANDS = {"setup", "register", "call", "sync", "history", "list", "status", "server", "config"}
 
 
 def main():
@@ -798,6 +852,11 @@ def main():
     server_parser = subparsers.add_parser("server", help="Start context server")
     server_parser.add_argument("--port", type=int, default=8765)
 
+    # Config
+    config_parser = subparsers.add_parser("config", help="Set or get configuration values")
+    config_parser.add_argument("key", help="Config key (server-url, show)")
+    config_parser.add_argument("value", nargs="?", help="Value to set (omit to get current value)")
+
     args = parser.parse_args()
 
     ensure_dirs()
@@ -819,6 +878,8 @@ def main():
         cmd_status(args)
     elif args.command == "server":
         cmd_server(args)
+    elif args.command == "config":
+        cmd_config(args)
     else:
         # No command = make a call
         class FakeArgs:

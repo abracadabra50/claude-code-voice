@@ -40,11 +40,15 @@ When you invoke `/call`, Claude:
 For live file reading during calls:
 
 ```bash
-# Terminal 1
+# Terminal 1: Start server
 claude-code-voice server
 
-# Terminal 2
+# Terminal 2: Create tunnel
 npx localtunnel --port 8765
+# Outputs: https://abc123.loca.lt
+
+# Terminal 3: Configure (auto-updates Vapi tools)
+claude-code-voice config server-url https://abc123.loca.lt
 ```
 
 ## Requirements
