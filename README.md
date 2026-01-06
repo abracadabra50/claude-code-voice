@@ -28,10 +28,12 @@ That's it! Now you can:
 ## What You Need
 
 Before running setup:
-1. **Vapi account** — https://vapi.ai (free to sign up)
+1. **Vapi account** — https://vapi.ai (free to sign up, **$10 credit included**)
 2. **Vapi API key** — https://dashboard.vapi.ai/api-keys
 3. **Vapi phone number** — https://dashboard.vapi.ai/phone-numbers (~$2/month)
 4. **Node.js** — for localtunnel
+
+> **Note:** New Vapi accounts get $10 free credit — enough to test everything without spending anything!
 
 ## Features
 
@@ -56,6 +58,26 @@ claude-code-voice config name <name> # Update your name
 claude-code-voice config show        # Show all config
 claude-code-voice history            # View past calls
 ```
+
+## Customization
+
+Change voice, model, or language:
+
+```bash
+# Voice (provider:voiceId)
+claude-code-voice config voice openai:nova          # OpenAI Nova
+claude-code-voice config voice elevenlabs:rachel    # ElevenLabs Rachel
+claude-code-voice config voice deepgram:asteria     # Deepgram Asteria
+
+# Model
+claude-code-voice config model claude-sonnet-4-20250514   # Use Sonnet 4
+
+# Language
+claude-code-voice config language es    # Spanish
+claude-code-voice config language fr    # French
+```
+
+**Supported voice providers:** openai, elevenlabs, deepgram, playht, azure
 
 ## How It Works
 

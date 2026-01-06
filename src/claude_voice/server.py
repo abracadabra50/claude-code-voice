@@ -39,6 +39,19 @@ def save_config(config: dict):
     CONFIG_FILE.write_text(json.dumps(config, indent=2))
 
 
+def get_voice_config(config: dict) -> dict:
+    """Get voice configuration from config or defaults."""
+    return {
+        "provider": config.get("voice_provider", "openai"),
+        "voiceId": config.get("voice_id", "alloy")
+    }
+
+
+def get_model_config(config: dict) -> str:
+    """Get model name from config or default."""
+    return config.get("model", "claude-opus-4-5-20251101")
+
+
 def ensure_dirs():
     """Ensure directories exist."""
     TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -241,10 +254,10 @@ def handle_assistant_request(data: dict) -> dict:
             "assistant": {
                 "model": {
                     "provider": "anthropic",
-                    "model": "claude-opus-4-5-20251101",
+                    "model": get_model_config(config),
                     "temperature": 0.7
                 },
-                "voice": {"provider": "openai", "voiceId": "alloy"},
+                "voice": get_voice_config(config),
                 "firstMessage": "Hey! I don't recognize this number. If you've set up Claude Voice, make sure you're calling from your registered phone number."
             }
         }
@@ -264,10 +277,10 @@ def handle_assistant_request(data: dict) -> dict:
             "assistant": {
                 "model": {
                     "provider": "anthropic",
-                    "model": "claude-opus-4-5-20251101",
+                    "model": get_model_config(config),
                     "temperature": 0.7
                 },
-                "voice": {"provider": "openai", "voiceId": "alloy"},
+                "voice": get_voice_config(config),
                 "firstMessage": f"Hey {user.get('name', 'there')}! I don't see any projects registered yet. Run 'claude-code-voice register' in a project directory first."
             }
         }
@@ -287,11 +300,11 @@ def handle_assistant_request(data: dict) -> dict:
     assistant_config = {
         "model": {
             "provider": "anthropic",
-            "model": "claude-opus-4-5-20251101",
+            "model": get_model_config(config),
             "temperature": 0.7,
             "messages": [{"role": "system", "content": system_prompt}]
         },
-        "voice": {"provider": "openai", "voiceId": "alloy"},
+        "voice": get_voice_config(config),
         "firstMessage": f"Hey {user.get('name', 'there')}! I've got {project.get('name')} loaded up. What's on your mind?"
     }
 
@@ -299,6 +312,11 @@ def handle_assistant_request(data: dict) -> dict:
     tool_ids = list(config.get("tool_ids", {}).values())
     if tool_ids:
         assistant_config["model"]["toolIds"] = tool_ids
+
+    # Add language config for transcriber if set
+    language = config.get("language")
+    if language and language != "en":
+        assistant_config["transcriber"] = {"provider": "deepgram", "language": language}
 
     return {"assistant": assistant_config}
 

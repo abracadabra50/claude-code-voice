@@ -535,14 +535,18 @@ Keep responses brief and conversational. Ask clarifying questions. Help brainsto
         print(f"   Session context: ✅ loaded")
 
     # Use transient assistant with rich context
+    voice_provider = config.get("voice_provider", "openai")
+    voice_id = config.get("voice_id", "alloy")
+    model_name = config.get("model", "claude-opus-4-5-20251101")
+
     assistant_config = {
         "model": {
             "provider": "anthropic",
-            "model": "claude-opus-4-5-20251101",
+            "model": model_name,
             "temperature": 0.7,
             "messages": [{"role": "system", "content": system_prompt}],
         },
-        "voice": {"provider": "openai", "voiceId": "alloy"},
+        "voice": {"provider": voice_provider, "voiceId": voice_id},
         "firstMessage": first_message,
     }
 
@@ -555,6 +559,11 @@ Keep responses brief and conversational. Ask clarifying questions. Help brainsto
     server_url = config.get("server_url")
     if server_url:
         assistant_config["serverUrl"] = server_url
+
+    # Add language config for transcriber if set
+    language = config.get("language")
+    if language and language != "en":
+        assistant_config["transcriber"] = {"provider": "deepgram", "language": language}
 
     call_data = {
         "phoneNumberId": config["vapi_phone_number_id"],
@@ -978,6 +987,77 @@ def cmd_config(args):
                 print("\nTo set it, run:")
                 print("  claude-code-voice config name YourName")
 
+    elif args.key == "voice":
+        if args.value:
+            # Parse voice format: provider:voiceId (e.g., elevenlabs:rachel, openai:nova)
+            voice = args.value.strip()
+            if ":" in voice:
+                provider, voice_id = voice.split(":", 1)
+            else:
+                # Default to openai if no provider specified
+                provider = "openai"
+                voice_id = voice
+
+            # Validate provider
+            valid_providers = ["openai", "elevenlabs", "deepgram", "playht", "azure"]
+            if provider not in valid_providers:
+                print(f"⚠️  Unknown provider: {provider}")
+                print(f"   Valid providers: {', '.join(valid_providers)}")
+                return
+
+            config["voice_provider"] = provider
+            config["voice_id"] = voice_id
+            save_config(config)
+            print(f"✅ voice = {provider}:{voice_id}")
+            print(f"\nVoice options:")
+            print(f"  OpenAI: alloy, echo, fable, onyx, nova, shimmer")
+            print(f"  ElevenLabs: Use voice ID from elevenlabs.io")
+        else:
+            provider = config.get("voice_provider", "openai")
+            voice_id = config.get("voice_id", "alloy")
+            print(f"voice = {provider}:{voice_id}")
+            print(f"\nTo change: claude-code-voice config voice provider:voiceId")
+            print(f"Examples:")
+            print(f"  claude-code-voice config voice openai:nova")
+            print(f"  claude-code-voice config voice elevenlabs:YOUR_VOICE_ID")
+
+    elif args.key == "model":
+        if args.value:
+            model = args.value.strip().lower()
+            model_map = {
+                "opus": "claude-opus-4-5-20251101",
+                "sonnet": "claude-sonnet-4-20250514",
+                "opus-4.5": "claude-opus-4-5-20251101",
+                "sonnet-4": "claude-sonnet-4-20250514",
+            }
+            if model in model_map:
+                config["model"] = model_map[model]
+                save_config(config)
+                print(f"✅ model = {model_map[model]}")
+            elif model.startswith("claude-"):
+                config["model"] = model
+                save_config(config)
+                print(f"✅ model = {model}")
+            else:
+                print(f"⚠️  Unknown model: {model}")
+                print(f"   Use: opus, sonnet, or full model ID")
+        else:
+            model = config.get("model", "claude-opus-4-5-20251101")
+            print(f"model = {model}")
+            print(f"\nTo change: claude-code-voice config model opus|sonnet")
+
+    elif args.key == "language":
+        if args.value:
+            lang = args.value.strip()
+            config["language"] = lang
+            save_config(config)
+            print(f"✅ language = {lang}")
+            print(f"\nClaude will now speak in {lang}")
+        else:
+            lang = config.get("language", "en")
+            print(f"language = {lang}")
+            print(f"\nTo change: claude-code-voice config language es|fr|de|etc")
+
     elif args.key == "show":
         print("=== Configuration ===\n")
         for key, value in config.items():
@@ -988,9 +1068,12 @@ def cmd_config(args):
     else:
         print(f"Unknown config key: {args.key}")
         print("\nAvailable keys:")
-        print("  server-url  - URL of your context server (e.g., localtunnel URL)")
-        print("  name        - Your name for personalized greetings")
-        print("  show        - Show all configuration values")
+        print("  server-url  - URL of your context server")
+        print("  name        - Your name for greetings")
+        print("  voice       - Voice provider:id (e.g., elevenlabs:rachel)")
+        print("  model       - AI model (opus, sonnet)")
+        print("  language    - Language code (en, es, fr, de)")
+        print("  show        - Show all configuration")
 
 
 # ============================================================================
